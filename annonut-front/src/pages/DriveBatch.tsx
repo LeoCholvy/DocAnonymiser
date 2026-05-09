@@ -32,7 +32,7 @@ export default function DriveBatch() {
         formData.append("report_format", reportFormat);
 
         try {
-            const res = await fetch('/api/v1/drive/process', { method: 'POST', body: formData });
+            const res = await fetch('/api/v1/drive/process', { method: 'POST', body: formData, credentials: 'include' });
             if(res.status === 401) { window.location.href = '/login'; return; }
             const data = await res.json();
             setTaskId(data.task_id);
