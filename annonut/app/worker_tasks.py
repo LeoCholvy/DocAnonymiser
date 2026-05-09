@@ -78,7 +78,14 @@ def task_process_drive(task_id: str, folder_id: str, whitelist: list, options: d
 
             # Upload de la version anonymisée
             final_name = file['name'] + "_[ANONYMIZED]" + local_ext
-            upload_file(service, file['parent_id'], output_path, final_name)
+            # upload_file(service, file['parent_id'], output_path, final_name)
+            upload_file(
+                service,
+                file['parent_id'],
+                output_path,
+                final_name,
+                convert_to_gdoc=is_gdoc  # <-- Utilise le flag détecté au début
+            )
 
             # Déplacement de l'original si demandé
             if action_orig == "move" and archive_folder_id:

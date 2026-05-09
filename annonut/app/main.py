@@ -7,12 +7,22 @@ from rq.job import Job
 from starlette.middleware.sessions import SessionMiddleware
 from google_auth_oauthlib.flow import Flow
 from app.worker_tasks import task_anonymize, task_process_drive
+from fastapi.middleware.cors import CORSMiddleware
+
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 with open("config.yaml", "r") as f: config = yaml.safe_load(f)
 
 app = FastAPI(title="AnnonUT Ultimate")
 app.add_middleware(SessionMiddleware, secret_key="super-secret-key-annonut")
+# Autoriser le Front-end (port 5173) à parler à l'API (port 8000)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"], # L'adresse de ton React
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 redis_conn = Redis(host='redis', port=6379)
 q_short = Queue("short_tasks", connection=redis_conn)
@@ -94,7 +104,7 @@ def callback(request: Request):
         'token': c.token, 'refresh_token': c.refresh_token, 'token_uri': c.token_uri,
         'client_id': c.client_id, 'client_secret': c.client_secret, 'scopes': c.scopes
     }
-    return RedirectResponse("/")
+    return RedirectResponse("http://localhost:5173/drive")
 
 @app.post("/api/v1/upload")
 async def manual_upload(

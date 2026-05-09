@@ -36,10 +36,28 @@ def download_file(service, file_id, save_path, mime_type=None):
     done = False
     while done is False: status, done = downloader.next_chunk()
 
-def upload_file(service, folder_id, file_path, new_name):
+# def upload_file(service, folder_id, file_path, new_name):
+#     file_metadata = {'name': new_name, 'parents': [folder_id]}
+#     media = MediaFileUpload(file_path, resumable=True)
+#     return service.files().create(body=file_metadata, media_body=media, fields='id', supportsAllDrives=True).execute()
+def upload_file(service, folder_id, file_path, new_name, convert_to_gdoc=False):
+    """
+    Upload un fichier vers le Drive.
+    Si convert_to_gdoc est True, le fichier sera transformé en Google Doc natif.
+    """
     file_metadata = {'name': new_name, 'parents': [folder_id]}
+
+    if convert_to_gdoc:
+        # On définit le type MIME cible pour forcer la conversion par Google
+        file_metadata['mimeType'] = 'application/vnd.google-apps.document'
+
     media = MediaFileUpload(file_path, resumable=True)
-    return service.files().create(body=file_metadata, media_body=media, fields='id', supportsAllDrives=True).execute()
+    return service.files().create(
+        body=file_metadata,
+        media_body=media,
+        fields='id',
+        supportsAllDrives=True
+    ).execute()
 
 def create_folder(service, folder_name, parent_id):
     """Crée un dossier dans Google Drive."""
