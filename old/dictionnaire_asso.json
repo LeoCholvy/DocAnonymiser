@@ -1,0 +1,22 @@
+{
+  "mots_a_proteger": [
+    "UTC", "UTT", "UTBM", "Compiègne",
+    "BDE", "BDA", "BDS", "SiMDE", "Pic'Asso", "Pic", "Ginger", "Portail",
+    "Woolly", "Shwet", "UVWeb", "PayUT", "Polar", "Festu", "Imaginarium",
+    "Tremplin", "Stravaganza", "Etu", "UTEEN", "Integ",
+    "UA", "UTT Arena",
+    "Weezepay", "Weezevent", "Pumpkin", "Lydia", "Toornament", "Discord",
+    "Trello", "Jira", "Notion", "Asana", "Slack", "Mattermost", "Teams", "Vercel", "Gantt",
+    "GitHub", "GitLab", "CircleCI", "Drone.io",
+    "React", "Redux", "Prisma", "Typescript", "JS", "Python", "FastAPI", "Docker", "Kubernetes", "API",
+    "REx", "RETEX", "CR", "ODJ", "AG", "CA", "Tour de table",
+    "TC", "GI", "GB", "GM", "GP", "GSM", "GU",
+    "Demande", "Règlement", "Général", "Protection", "Données", "RGPD", "TODO", "Liens", "Annexe", "Bilan",
+    "Monsieur", "Madame", "Mademoiselle", "Dr", "Professeur", "Président", "Vice-président", "Trésorier", "Secrétaire"
+  ],
+  "surnoms_a_censurer": [
+    "Flo", "Val", "Nico", "Seb", "Alex", "Max", "Tom", "Léo", "Hugo", "Theo",
+    "Clem", "Ben", "Sam", "Jo", "Greg", "Gui", "Mat", "Antho", "Bapt", "Jb", "Jc", "Jm",
+    "Ju", "Rom", "Gaby", "Vince", "Mika", "Raph", "Guill", "Gwen", "Margaux", "Cam", "Marie", "Chlo"
+  ]
+}

@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  api:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - ./app/data:/app/data
+    depends_on:
+      - redis
+
+  # Worker pour les petits fichiers (< 5 pages). Prend les longs s'il n'a rien d'autre à faire.
+  worker-fast:
+    build: .
+    command: rq worker -u redis://redis:6379/0 short_tasks long_tasks
+    volumes:
+      - .:/app
+      - ./app/data:/app/data
+    depends_on:
+      - redis
+
+  # Worker standard pour les gros fichiers.
+  worker-standard:
+    build: .
+    command: rq worker -u redis://redis:6379/0 long_tasks
+    volumes:
+      - .:/app
+      - ./app/data:/app/data
+    depends_on:
+      - redis
+
+volumes:
+  redis_data:

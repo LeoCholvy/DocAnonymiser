@@ -1,0 +1,7 @@
+pymupdf
+presidio-analyzer[transformers]
+spacy
+torch
+transformers
+sentencepiece
+protobuf

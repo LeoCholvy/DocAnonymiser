@@ -1,0 +1,16 @@
+app:
+  upload_dir: "/app/data/uploads"
+  processed_dir: "/app/data/processed"
+
+nlp:
+  # Remplacement par le modèle Large comme demandé
+  spacy_model: "fr_core_news_lg"
+  transformers_model: "Jean-Baptiste/camembert-ner"
+
+queues:
+  short_max_pages: 5
+  short_name: "short_tasks"
+  long_name: "long_tasks"
+
+worker:
+  timeout: 3600 # 1 heure max par fichier
