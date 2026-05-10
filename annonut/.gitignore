@@ -1,1 +1,5 @@
 client_secret.json
+
+# data folder
+data/
+src/data/
