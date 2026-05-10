@@ -1,0 +1,10 @@
+[
+  "UTC", "UTT", "UTBM", "UTTOP", "Compiègne", "BDE", "BDA", "BDS", "PVDC", "PSEC", "PAE", "PTE","Assos", "Pôle",
+  "TC", "GI", "GM", "GB", "GP", "GSU", "GU", "IM", "API", "UV", "TX", "PR", "TN",
+  "Benjamin Franklin", "Pierre Guillaumat", "Blaise Pascal", "Centre d'Innovation",
+  "React", "FastAPI", "Python", "TypeScript", "JavaScript", "Redis", "Docker", "Git", "GitHub", "GitLab", "VSCode",
+  "HTML", "CSS", "SQL", "NoSQL", "JSON", "YAML", "API", "REST", "GraphQL",
+  "Notion", "Slack", "Discord", "Teams", "Vercel", "Trello", "REx", "RETEX", "CR", "ODJ", "AG", "CA", "Tour de table", "Règlement",   "Général", "Protection", "Données", "RGPD", "TODO", "Liens", "Annexe", "Bilan", "Monsieur", "Madame", "Mademoiselle", "Dr", "Professeur", "Président", "Vice-président", "Trésorier", "Secrétaire",
+  "NLP", "Vite", "Node.js", "Tailwind", "PostgreSQL", "MongoDB", "Linux", "Ubuntu", "Moodle", "ENT", "Webmail",
+  "Médian", "CC", "Final", "Semestre", "Convention", "Avenant", "NDA", "Facture", "Devis", "SIRET", "SIREN"
+]

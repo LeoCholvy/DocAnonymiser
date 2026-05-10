@@ -1,11 +1,16 @@
 import os, yaml, time, csv
 from rq import get_current_job
+from redis import Redis
 from app.engine import process_pdf, process_docx, process_text
 from app.gdrive import get_user_drive_service, list_files_recursive, download_file, upload_file, create_folder, move_file
 
 with open("config.yaml", "r") as f: config = yaml.safe_load(f)
 
+# Connexion globale pour manipuler le dictionnaire d'expiration
+redis_conn = Redis(host='redis', port=6379)
+
 def get_entities_from_options(options: dict) -> list:
+    """Convertit les options booléennes en liste d'entités Spacy/Presidio compréhensibles."""
     mapping = {
         "mask_person": "PERSON", "mask_email": "EMAIL_ADDRESS",
         "mask_phone": "PHONE_NUMBER", "mask_location": "LOCATION",
@@ -20,19 +25,31 @@ def get_entities_from_options(options: dict) -> list:
     return entities if entities else ["PERSON"]
 
 def task_anonymize(task_id: str, filename: str, whitelist: list, options: dict):
+    """Traitement d'un fichier unique (Upload Manuel)."""
     input_path = os.path.join(config["app"]["upload_dir"], f"{task_id}_{filename}")
     output_path = os.path.join(config["app"]["processed_dir"], f"{task_id}_[ANONYMIZED]_{filename}")
     entities = get_entities_from_options(options)
 
+    # Détection de l'extension et traitement
     nom = filename.lower()
     if nom.endswith(".pdf"): m = process_pdf(input_path, output_path, whitelist, entities)
     elif nom.endswith(".docx"): m = process_docx(input_path, output_path, whitelist, entities)
     elif nom.endswith((".txt", ".md", ".csv")): m = process_text(input_path, output_path, whitelist, entities)
 
+    # Nettoyage de l'original stocké sur le serveur (sécurité)
     if os.path.exists(input_path): os.remove(input_path)
+
+    # ---------------------------------------------------------
+    # DÉFINITION DU TTL (Time To Live) : 24h par défaut
+    # ---------------------------------------------------------
+    expiration_timestamp = time.time() + 86400 # 24 heures en secondes
+    # zadd ajoute dans le Set "file_expirations" un score (le timestamp) lié au task_id
+    redis_conn.zadd("file_expirations", {task_id: expiration_timestamp})
+
     return {"status": "success", "mots_masques": m, "output_file": output_path}
 
 def task_process_drive(task_id: str, folder_id: str, whitelist: list, options: dict, creds_dict: dict):
+    """Traitement en lot (Batch) pour Google Drive. (Les fichiers ne sont pas stockés durablement sur le serveur)"""
     job = get_current_job()
     if job:
         job.meta.update({'processed_files': [], 'current_file': 'Exploration du Drive...'})
@@ -42,15 +59,15 @@ def task_process_drive(task_id: str, folder_id: str, whitelist: list, options: d
     files = list_files_recursive(service, folder_id)
     entities = get_entities_from_options(options)
 
-    action_orig = options.get("action_orig", "keep") # "keep" ou "move"
-    report_format = options.get("report_format", "md") # "md", "csv", "none"
+    action_orig = options.get("action_orig", "keep")
+    report_format = options.get("report_format", "md")
 
     archive_folder_id = None
     if action_orig == "move":
-        # Création du dossier d'archives à la racine du dossier ciblé
+        # Création du dossier d'archives si demandé
         archive_folder_id = create_folder(service, f"[UNANONYZED]_Archives_{task_id[:4]}", folder_id)
 
-    report_data = [] # Pour stocker les infos du rapport
+    report_data = []
 
     for file in files:
         if "[ANONYMIZED]" in file['name']: continue
@@ -76,15 +93,11 @@ def task_process_drive(task_id: str, folder_id: str, whitelist: list, options: d
             elif input_path.lower().endswith(".pdf"): m = process_pdf(input_path, output_path, whitelist, entities)
             else: m = process_text(input_path, output_path, whitelist, entities)
 
-            # Upload de la version anonymisée
+            # Remonte le fichier sur Drive
             final_name = file['name'] + "_[ANONYMIZED]" + local_ext
-            # upload_file(service, file['parent_id'], output_path, final_name)
             upload_file(
-                service,
-                file['parent_id'],
-                output_path,
-                final_name,
-                convert_to_gdoc=is_gdoc  # <-- Utilise le flag détecté au début
+                service, file['parent_id'], output_path, final_name,
+                convert_to_gdoc=is_gdoc
             )
 
             # Déplacement de l'original si demandé
@@ -102,6 +115,7 @@ def task_process_drive(task_id: str, folder_id: str, whitelist: list, options: d
                 job.save_meta()
         finally:
             report_data.append({"fichier": file['name'], "statut": status_msg, "mots": m})
+            # Nettoyage immédiat des fichiers locaux
             for p in [input_path, output_path]:
                 if os.path.exists(p): os.remove(p)
         time.sleep(1)
@@ -122,7 +136,7 @@ def task_process_drive(task_id: str, folder_id: str, whitelist: list, options: d
                 for r in report_data: writer.writerow([r['fichier'], r['statut'], r['mots']])
 
         upload_file(service, folder_id, report_path, f"Rapport_Anonymisation.{report_format}")
-        os.remove(report_path)
+        os.remove(report_path) # Nettoyage
 
     if job:
         job.meta['current_file'] = None
